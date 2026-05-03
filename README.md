@@ -1,6 +1,6 @@
 # taskctl
 
-A simple command-line task manager built with Goland and PostgreSQL.
+A simple command-line task manager built with Go and PostgreSQL.
 
 ## Features
 
@@ -12,14 +12,18 @@ A simple command-line task manager built with Goland and PostgreSQL.
 ## Setup
 
 1. Create a PostgreSQL database with the query:
+```sql
+CREATE DATABASE taskctl;
+
 CREATE TABLE tasks (
     id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     description TEXT NOT NULL,
     completed BOOL NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT NOW()
 );
+```
 
-2. Provide a DSN (connection string) in main.go with your PostgreSQL credentials
+2. Create a `.env` file in the project root by copying `.env.example` and update with your credentials (replace `yourpassword` with your actual PostgreSQL password)
 3. Build the project:
 
 go build -o taskctl.exe
