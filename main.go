@@ -15,6 +15,7 @@ func main() {
 		fmt.Println("Commands:")
 		fmt.Println("  list\t\t - Show all tasks")
 		fmt.Println("  add\t\t - Add new task")
+		fmt.Println("  done <id>\t\t - Mark a task as completed")
 	}
 
 	connStr := "postgres://postgres:12345678@localhost:5432/taskctl"
@@ -35,6 +36,13 @@ func main() {
 			log.Fatal("Please provide a task description")
 		}
 		addTask(conn, os.Args[2])
+	case "done":
+		if len(os.Args) < 3 {
+			log.Fatal("Please provide a task ID")
+		}
+		id := 0
+		fmt.Sscanf(os.Args[2], "%d", &id)
+		completeTask(conn, id)
 	default:
 		log.Fatal("Unknown command:", command)
 	}
@@ -83,4 +91,21 @@ func addTask(conn *pgx.Conn, description string) {
 	}
 
 	fmt.Printf("Task added with ID: %d\n", id)
+}
+
+func completeTask(conn *pgx.Conn, id int) {
+	result, err := conn.Exec(
+		context.Background(),
+		"UPDATE tasks SET completed = true WHERE id = $1",
+		id,
+	)
+
+	if err != nil {
+		log.Fatal("Failed to complete task:", err)
+	}
+	if result.RowsAffected() == 0 {
+		fmt.Printf("Task not found with ID: %d\n", id)
+	}
+
+	fmt.Printf("Task marked as completed with ID: %d", id)
 }
