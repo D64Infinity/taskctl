@@ -4,11 +4,19 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/jackc/pgx/v5"
 )
 
 func main() {
+	if len(os.Args) < 2 {
+		fmt.Println("Usage: taskctl <command> [arguments]")
+		fmt.Println("Commands:")
+		fmt.Println("  list\t\t - Show all tasks")
+		fmt.Println("  add\t\t - Add new task")
+	}
+
 	connStr := "postgres://postgres:12345678@localhost:5432/taskctl"
 
 	conn, err := pgx.Connect(context.Background(), connStr)
@@ -17,6 +25,22 @@ func main() {
 	}
 	defer conn.Close(context.Background())
 
+	command := os.Args[1]
+
+	switch command {
+	case "list":
+		listTasks(conn)
+	case "add":
+		if len(os.Args) < 3 {
+			log.Fatal("Please provide a task description")
+		}
+		addTask(conn, os.Args[2])
+	default:
+		log.Fatal("Unknown command:", command)
+	}
+}
+
+func listTasks(conn *pgx.Conn) {
 	rows, err := conn.Query(
 		context.Background(),
 		"SELECT id, description, completed FROM tasks ORDER BY id",
@@ -44,4 +68,19 @@ func main() {
 
 		fmt.Printf("%d. %s %s\n", id, status, description)
 	}
+}
+
+func addTask(conn *pgx.Conn, description string) {
+	var id int
+	err := conn.QueryRow(
+		context.Background(),
+		"INSERT INTO tasks (description) VALUES ($1) RETURNING id",
+		description,
+	).Scan(&id)
+
+	if err != nil {
+		log.Fatal("Failed to insert task:", err)
+	}
+
+	fmt.Printf("Task added with ID: %d\n", id)
 }
