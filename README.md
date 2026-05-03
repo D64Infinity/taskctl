@@ -26,16 +26,20 @@ CREATE TABLE tasks (
 2. Create a `.env` file in the project root by copying `.env.example` and update with your credentials (replace `yourpassword` with your actual PostgreSQL password)
 3. Build the project:
 
+```bash
 go build -o taskctl.exe
+```
 
-Usage
+## Usage
 
+```bash
 taskctl list                            # Show all tasks
 taskctl add "Example task description"  # Add a new task
 taskctl done <id>                       # Mark a task as completed
 taskctl delete <id>                     # Delete a task
+```
 
-Tech Stack
+## Tech Stack
 - Go 1.22+
 - PostgreSQL
 - pgx driver
