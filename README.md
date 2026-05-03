@@ -28,14 +28,16 @@ CREATE TABLE tasks (
 
 go build -o taskctl.exe
 
-Usage
+## Usage
 
+```bash
 taskctl list                            # Show all tasks
 taskctl add "Example task description"  # Add a new task
 taskctl done <id>                       # Mark a task as completed
 taskctl delete <id>                     # Delete a task
+```
 
-Tech Stack
+## Tech Stack
 - Go 1.22+
 - PostgreSQL
 - pgx driver
