@@ -1,3 +1,3 @@
-  .env
-  taskctl.exe
-  *.exe
+.env
+taskctl.exe
+*.exe
