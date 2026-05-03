@@ -17,18 +17,31 @@ func main() {
 	}
 	defer conn.Close(context.Background())
 
-	taskDescription := "Practice Golang"
-
-	var taskId int
-	err = conn.QueryRow(
+	rows, err := conn.Query(
 		context.Background(),
-		"INSERT INTO tasks (description) VALUES ($1) RETURNING id",
-		taskDescription,
-	).Scan(&taskId)
-
+		"SELECT id, description, completed FROM tasks ORDER BY id",
+	)
 	if err != nil {
-		log.Fatal("Failed to insert the task: ", err)
+		log.Fatal("Failed to query tasks:", err)
 	}
+	defer rows.Close()
 
-	fmt.Printf("Task added with ID: %d\n", taskId)
+	fmt.Println("Tasks:")
+	for rows.Next() {
+		var id int
+		var description string
+		var completed bool
+
+		err = rows.Scan(&id, &description, &completed)
+		if err != nil {
+			log.Fatal("Failed to scan row:", err)
+		}
+
+		status := "[ ]"
+		if completed {
+			status = "[o]"
+		}
+
+		fmt.Printf("%d. %s %s\n", id, status, description)
+	}
 }
