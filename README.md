@@ -26,7 +26,9 @@ CREATE TABLE tasks (
 2. Create a `.env` file in the project root by copying `.env.example` and update with your credentials (replace `yourpassword` with your actual PostgreSQL password)
 3. Build the project:
 
+```bash
 go build -o taskctl.exe
+```
 
 ## Usage
 
