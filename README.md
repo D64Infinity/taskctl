@@ -7,6 +7,7 @@ A simple command-line task manager built with Goland and PostgreSQL.
 - Add tasks
 - List all tasks
 - Mark tasks as completed
+- Delete a task
 
 ## Setup
 
@@ -28,6 +29,7 @@ Usage
 taskctl list                            # Show all tasks
 taskctl add "Example task description"  # Add a new task
 taskctl done <id>                       # Mark a task as completed
+taskctl delete <id>                     # Delete a task
 
 Tech Stack
 - Go 1.22+
