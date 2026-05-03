@@ -7,9 +7,15 @@ import (
 	"os"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found, using system environment variables")
+	}
+
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: taskctl <command> [arguments]")
 		fmt.Println("Commands:")
@@ -20,7 +26,10 @@ func main() {
 		return
 	}
 
-	connStr := "postgres://postgres:12345678@localhost:5432/taskctl"
+	connStr := os.Getenv("DATABASE_URL")
+	if connStr == "" {
+		connStr = "postgres://postgres@localhost:5432/taskctl"
+	}
 
 	conn, err := pgx.Connect(context.Background(), connStr)
 	if err != nil {
