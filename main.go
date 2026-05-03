@@ -14,7 +14,7 @@ func main() {
 		fmt.Println("Usage: taskctl <command> [arguments]")
 		fmt.Println("Commands:")
 		fmt.Println("  list\t\t - Show all tasks")
-		fmt.Println("  add\t\t - Add new task")
+		fmt.Println("  add\t\t - Add a new task")
 		fmt.Println("  done <id>\t\t - Mark a task as completed")
 	}
 
