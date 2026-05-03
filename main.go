@@ -113,7 +113,7 @@ func completeTask(conn *pgx.Conn, id int) {
 		log.Fatal("Failed to complete task:", err)
 	}
 	if result.RowsAffected() == 0 {
-		fmt.Printf("Task not found with ID: %d\n", id)
+		log.Fatal("Task not found with ID:", id)
 	}
 
 	fmt.Printf("Task marked as completed with ID: %d\n", id)
