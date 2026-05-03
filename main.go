@@ -16,6 +16,7 @@ func main() {
 		fmt.Println("  list\t\t - Show all tasks")
 		fmt.Println("  add\t\t - Add a new task")
 		fmt.Println("  done <id>\t\t - Mark a task as completed")
+		fmt.Println("  delete <id>\t\t - Delete a task")
 	}
 
 	connStr := "postgres://postgres:12345678@localhost:5432/taskctl"
@@ -43,6 +44,13 @@ func main() {
 		id := 0
 		fmt.Sscanf(os.Args[2], "%d", &id)
 		completeTask(conn, id)
+	case "delete":
+		if len(os.Args) < 3 {
+			log.Fatal("Please provide a task ID")
+		}
+		id := 0
+		fmt.Sscanf(os.Args[2], "%d", &id)
+		deleteTask(conn, id)
 	default:
 		log.Fatal("Unknown command:", command)
 	}
@@ -107,5 +115,22 @@ func completeTask(conn *pgx.Conn, id int) {
 		fmt.Printf("Task not found with ID: %d\n", id)
 	}
 
-	fmt.Printf("Task marked as completed with ID: %d", id)
+	fmt.Printf("Task marked as completed with ID: %d\n", id)
+}
+
+func deleteTask(conn *pgx.Conn, id int) {
+	result, err := conn.Exec(
+		context.Background(),
+		"DELETE FROM tasks WHERE id = $1",
+		id,
+	)
+
+	if err != nil {
+		log.Fatal("Failed to delete a task:", err)
+	}
+	if result.RowsAffected() == 0 {
+		fmt.Printf("Task not found with ID: %d\n", id)
+	}
+
+	fmt.Printf("Task deleted with ID: %d\n", id)
 }
