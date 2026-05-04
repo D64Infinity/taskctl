@@ -77,3 +77,18 @@ func deleteTask(conn *pgx.Conn, id int) error {
 	}
 	return nil
 }
+
+func countTasks(conn *pgx.Conn) (int, int, int, error) {
+	var total, active, completed int
+
+	err := conn.QueryRow(
+		context.Background(),
+		`SELECT
+			COUNT(id) AS total,
+			COUNT(id) FILTER(WHERE NOT completed) AS active,
+			COUNT(id) FILTER(WHERE completed) AS completed
+		FROM tasks`,
+	).Scan(&total, &active, &completed)
+
+	return total, active, completed, err
+}
