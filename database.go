@@ -1,0 +1,79 @@
+package main
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/jackc/pgx/v5"
+)
+
+func listTasks(conn *pgx.Conn) error {
+	rows, err := conn.Query(
+		context.Background(),
+		"SELECT id, description, completed FROM tasks ORDER BY id",
+	)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int
+		var description string
+		var completed bool
+
+		err = rows.Scan(&id, &description, &completed)
+		if err != nil {
+			return err
+		}
+
+		status := "[ ]"
+		if completed {
+			status = "[o]"
+		}
+		fmt.Printf("%d. %s %s\n", id, status, description)
+	}
+	return nil
+}
+
+func addTask(conn *pgx.Conn, description string) (int, error) {
+	var id int
+
+	err := conn.QueryRow(
+		context.Background(),
+		"INSERT INTO tasks (description) VALUES ($1) RETURNING id",
+		description,
+	).Scan(&id)
+
+	return id, err
+}
+
+func completeTask(conn *pgx.Conn, id int) error {
+	result, err := conn.Exec(
+		context.Background(),
+		"UPDATE tasks SET completed = true WHERE id = $1",
+		id,
+	)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("Task not found with ID: %d", id)
+	}
+	return nil
+}
+
+func deleteTask(conn *pgx.Conn, id int) error {
+	result, err := conn.Exec(
+		context.Background(),
+		"DELETE FROM tasks WHERE id = $1",
+		id,
+	)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("Task not found with ID: %d", id)
+	}
+	return nil
+}
