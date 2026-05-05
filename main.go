@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -20,6 +21,7 @@ func main() {
 		fmt.Println("Usage: taskctl <command> [arguments]")
 		fmt.Println("Commands:")
 		fmt.Println("  list\t\t\t - Show all tasks")
+		fmt.Println("  count\t\t\t - Count all tasks (summary, pending, completed)")
 		fmt.Println("  add\t\t\t - Add a new task")
 		fmt.Println("  done <id>\t\t - Mark a task as completed")
 		fmt.Println("  delete <id>\t\t - Delete a task")
@@ -41,11 +43,25 @@ func main() {
 
 	switch command {
 	case "list":
+		listFlags := flag.NewFlagSet("list", flag.ExitOnError)
+		flagsList := map[string]*bool{
+			PENDING:   listFlags.Bool("pending", false, "show pending tasks"),
+			COMPLETED: listFlags.Bool("completed", false, "show completed tasks"),
+		}
+		listFlags.Parse(os.Args[2:])
+
 		fmt.Println("Tasks:")
-		err := listTasks(conn)
+		err = listTasks(conn, flagsList)
 		if err != nil {
 			log.Fatal("Failed to list tasks: ", err)
 		}
+	case "count":
+		taskCount, taskActiveCount, taskCompleteCount, err := countTasks(conn)
+		if err != nil {
+			log.Fatal("Failed to count tasks: ", err)
+		}
+		fmt.Printf("Summary: %d | pending: %d | completed: %d\n",
+			taskCount, taskActiveCount, taskCompleteCount)
 	case "add":
 		if len(os.Args) < 3 {
 			log.Fatal("Please provide a task description")
