@@ -7,10 +7,30 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func listTasks(conn *pgx.Conn) error {
+const (
+	PENDING   = "pending"
+	COMPLETED = "completed"
+)
+
+var listCommandConditions = map[string]string{
+	PENDING:   "completed = false",
+	COMPLETED: "completed = true",
+}
+
+func listTasks(conn *pgx.Conn, flags map[string]*bool) error {
+	queryStr := "SELECT id, description, completed FROM tasks"
+
+	for flagKey, flagValue := range flags {
+		if *flagValue {
+			queryStr += " WHERE " + listCommandConditions[flagKey]
+			break
+		}
+	}
+	queryStr += " ORDER BY id"
+
 	rows, err := conn.Query(
 		context.Background(),
-		"SELECT id, description, completed FROM tasks ORDER BY id",
+		queryStr,
 	)
 	if err != nil {
 		return err

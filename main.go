@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -42,8 +43,15 @@ func main() {
 
 	switch command {
 	case "list":
+		listFlags := flag.NewFlagSet("list", flag.ExitOnError)
+		flagsList := map[string]*bool{
+			PENDING:   listFlags.Bool("pending", false, "show pending tasks"),
+			COMPLETED: listFlags.Bool("completed", false, "show completed tasks"),
+		}
+		listFlags.Parse(os.Args[2:])
+
 		fmt.Println("Tasks:")
-		err := listTasks(conn)
+		err = listTasks(conn, flagsList)
 		if err != nil {
 			log.Fatal("Failed to list tasks: ", err)
 		}

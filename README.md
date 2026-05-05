@@ -33,11 +33,13 @@ go build -o taskctl.exe
 ## Usage
 
 ```bash
-taskctl list                            # Show all tasks
-taskctl count                           # Count all tasks (summary, pending, completed)"
-taskctl add "Example task description"  # Add a new task
-taskctl done <id>                       # Mark a task as completed
-taskctl delete <id>                     # Delete a task
+taskctl list                                # Show all tasks
+taskctl list [--pending, -pending]          # Show active tasks
+taskctl list [--completed, -completed]      # Show completed tasks 
+taskctl count                               # Count all tasks (summary, pending, completed)"
+taskctl add "Example task description"      # Add a new task
+taskctl done <id>                           # Mark a task as completed
+taskctl delete <id>                         # Delete a task
 ```
 
 ## Tech Stack
