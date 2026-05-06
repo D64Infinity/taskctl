@@ -5,7 +5,7 @@ A simple command-line task manager built with Go and PostgreSQL.
 ## Features
 
 - Add tasks
-- List all tasks
+- List and count tasks
 - Mark tasks as completed
 - Delete a task
 

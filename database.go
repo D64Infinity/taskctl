@@ -37,6 +37,7 @@ func listTasks(conn *pgx.Conn, flags map[string]*bool) error {
 	}
 	defer rows.Close()
 
+	hasRows := false
 	for rows.Next() {
 		var id int
 		var description string
@@ -51,7 +52,11 @@ func listTasks(conn *pgx.Conn, flags map[string]*bool) error {
 		if completed {
 			status = "[o]"
 		}
-		fmt.Printf("%d. %s %s\n", id, status, description)
+		fmt.Printf("%d.\t %s %s\n", id, status, description)
+		hasRows = true
+	}
+	if !hasRows {
+		fmt.Println("No tasks found")
 	}
 	return nil
 }

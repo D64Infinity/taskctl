@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
@@ -20,11 +21,13 @@ func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: taskctl <command> [arguments]")
 		fmt.Println("Commands:")
-		fmt.Println("  list\t\t\t - Show all tasks")
-		fmt.Println("  count\t\t\t - Count all tasks (summary, pending, completed)")
-		fmt.Println("  add\t\t\t - Add a new task")
-		fmt.Println("  done <id>\t\t - Mark a task as completed")
-		fmt.Println("  delete <id>\t\t - Delete a task")
+		fmt.Println("  list                             - Show all tasks")
+		fmt.Println("  list [--pending, -pending]       - Show active tasks")
+		fmt.Println("  list [--completed, -completed]   - Show completed tasks")
+		fmt.Println("  count                            - Count all tasks (summary, pending, completed)")
+		fmt.Println("  add                              - Add a new task")
+		fmt.Println("  done <id>                        - Mark a task as completed")
+		fmt.Println("  delete <id>                      - Delete a task")
 		return
 	}
 
@@ -65,6 +68,9 @@ func main() {
 	case "add":
 		if len(os.Args) < 3 {
 			log.Fatal("Please provide a task description")
+		}
+		if strings.TrimSpace(os.Args[2]) == "" {
+			log.Fatal("Task description cannot be empty")
 		}
 
 		idAdded, err := addTask(conn, os.Args[2])
