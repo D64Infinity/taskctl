@@ -10,6 +10,9 @@ import (
 const (
 	PENDING   = "pending"
 	COMPLETED = "completed"
+	HIGH      = "high"
+	MEDIUM    = "medium"
+	LOW       = "low"
 )
 
 var listCommandConditions = map[string]string{
@@ -17,12 +20,40 @@ var listCommandConditions = map[string]string{
 	COMPLETED: "completed = true",
 }
 
+func retrievePriorityId(conn *pgx.Conn, priorityStr string) (int, error) {
+	rows, err := conn.Query(
+		context.Background(),
+		"SELECT id FROM task_priority WHERE priority = $1",
+		priorityStr,
+	)
+	if err != nil {
+		return -1, err
+	}
+	defer rows.Close()
+
+	var id int
+	if rows.Next() {
+		err := rows.Scan(&id)
+		if err != nil {
+			return -1, err
+		}
+		return id, nil
+	} else {
+		return -1, fmt.Errorf("Priority was not found: %s", priorityStr)
+	}
+}
+
 func listTasks(conn *pgx.Conn, flags map[string]*bool) error {
-	queryStr := "SELECT id, description, completed FROM tasks"
+	queryStr := `SELECT 
+					tasks.id,
+					tasks.description,
+					tasks.completed,
+					task_priority.priority
+				 FROM tasks INNER JOIN task_priority ON task_priority.id = tasks.priority_id`
 
 	for flagKey, flagValue := range flags {
 		if *flagValue {
-			queryStr += " WHERE " + listCommandConditions[flagKey]
+			queryStr += " WHERE tasks." + listCommandConditions[flagKey]
 			break
 		}
 	}
@@ -42,8 +73,9 @@ func listTasks(conn *pgx.Conn, flags map[string]*bool) error {
 		var id int
 		var description string
 		var completed bool
+		var priority string
 
-		err = rows.Scan(&id, &description, &completed)
+		err = rows.Scan(&id, &description, &completed, &priority)
 		if err != nil {
 			return err
 		}
@@ -52,7 +84,7 @@ func listTasks(conn *pgx.Conn, flags map[string]*bool) error {
 		if completed {
 			status = "[o]"
 		}
-		fmt.Printf("%d.\t %s %s\n", id, status, description)
+		fmt.Printf("%d.\t %s %s (%s)\n", id, status, description, priority)
 		hasRows = true
 	}
 	if !hasRows {
@@ -61,14 +93,34 @@ func listTasks(conn *pgx.Conn, flags map[string]*bool) error {
 	return nil
 }
 
-func addTask(conn *pgx.Conn, description string) (int, error) {
-	var id int
+func addTask(conn *pgx.Conn, description string, flags map[string]*bool) (int, error) {
+	var id, priorityId int = -1, -1
+	var err error
 
-	err := conn.QueryRow(
-		context.Background(),
-		"INSERT INTO tasks (description) VALUES ($1) RETURNING id",
-		description,
-	).Scan(&id)
+	for flagKey, flagValue := range flags {
+		if *flagValue {
+			priorityId, err = retrievePriorityId(conn, flagKey)
+			if err != nil {
+				return -1, err
+			}
+			break
+		}
+	}
+
+	if priorityId == -1 {
+		err = conn.QueryRow(
+			context.Background(),
+			"INSERT INTO tasks (description) VALUES ($1) RETURNING id",
+			description,
+		).Scan(&id)
+	} else {
+		err = conn.QueryRow(
+			context.Background(),
+			"INSERT INTO tasks (description, priority_id) VALUES ($1, $2) RETURNING id",
+			description,
+			priorityId,
+		).Scan(&id)
+	}
 
 	return id, err
 }
