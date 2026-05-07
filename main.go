@@ -21,18 +21,21 @@ func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: taskctl <command> [arguments]")
 		fmt.Println("Commands:")
-		fmt.Println("  list                             - Show all tasks")
-		fmt.Println("  list [--pending, -pending]       - Show active tasks")
-		fmt.Println("  list [--completed, -completed]   - Show completed tasks")
-		fmt.Println("  count                            - Count all tasks (summary, pending, completed)")
-		fmt.Println("  add                              - Add a new task")
-		fmt.Println("  done <id>                        - Mark a task as completed")
-		fmt.Println("  delete <id>                      - Delete a task")
+		fmt.Println("  list                                 - Show all tasks")
+		fmt.Println("  list [--pending, -pending]           - Show active tasks")
+		fmt.Println("  list [--completed, -completed]       - Show completed tasks")
+		fmt.Println("  count                                - Count all tasks (summary, pending, completed)")
+		fmt.Println("  add \"Example task description\"       - Add a new task (default priority: \"medium\")")
+		fmt.Println("  add \"Example\" [--low, -low]          - Add a new task (priority: \"low\")")
+		fmt.Println("  add \"Example\" [--medium, -medium]    - Add a new task (priority: \"medium\" (explicitly))")
+		fmt.Println("  add \"Example\" [--high, -high]        - Add a new task (priority: \"high\")")
+		fmt.Println("  done <id>                            - Mark a task as completed")
+		fmt.Println("  delete <id>                          - Delete a task")
 		return
 	}
 
 	connStr := os.Getenv("DATABASE_URL")
-	if connStr == "" {
+	if strings.TrimSpace(connStr) == "" {
 		connStr = "postgres://postgres@localhost:5432/taskctl"
 	}
 
@@ -69,15 +72,30 @@ func main() {
 		if len(os.Args) < 3 {
 			log.Fatal("Please provide a task description")
 		}
+		if len(os.Args) > 4 {
+			log.Fatal("Please provide a single appropriate flag")
+		}
 		if strings.TrimSpace(os.Args[2]) == "" {
 			log.Fatal("Task description cannot be empty")
+		}
+		if len(os.Args) == 3 {
+			arg := os.Args[2]
+			if strings.HasPrefix(arg, "-") {
+				log.Fatal("Please make sure task description is set correctly (it cannot start with \"-\")")
+			}
+		}
+		if len(os.Args) == 4 {
+			arg := os.Args[3]
+			if arg == "-" || arg == "--" || !strings.HasPrefix(arg, "-") {
+				log.Fatal("Please provide an appropriate flag")
+			}
 		}
 
 		addFlags := flag.NewFlagSet("add", flag.ExitOnError)
 		flagsList := map[string]*bool{
-			HIGH:   addFlags.Bool("high", false, "set a high priority to a task"),
-			MEDIUM: addFlags.Bool("medium", false, "set a medium priority to a task"),
-			LOW:    addFlags.Bool("low", false, "set a low priority to a task"),
+			HIGH:   addFlags.Bool("high", false, "set high priority"),
+			MEDIUM: addFlags.Bool("medium", false, "set medium priority"),
+			LOW:    addFlags.Bool("low", false, "set low priority"),
 		}
 		addFlags.Parse(os.Args[3:])
 
