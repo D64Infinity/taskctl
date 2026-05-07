@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 
@@ -134,6 +135,13 @@ func main() {
 			log.Fatal("Failed to delete task: ", err)
 		}
 		fmt.Printf("Task deleted with ID: %d\n", id)
+	case "serve":
+		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-type", "text/html")
+			fmt.Fprintf(w, "<h1>TaskCTL Web</h1><p>Your tasks will go here</p>")
+		})
+		fmt.Println("Server running on http://localhost:8080")
+		http.ListenAndServe(":8080", nil)
 	default:
 		log.Fatal("Unknown command: ", command)
 	}
